@@ -1,0 +1,51 @@
+---
+title: "The 30 Most poluated metropolitan in the United States"
+author: "Zhengguo Chu"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This work is to present a population map of top 30 metropolitan areas of the United States by using plotly. The original data is downloaded from www.statcrunch.com [Metropolitan Statistical Areas in the U.S. - Poplulation, Location](https://www.statcrunch.com/app/index.php?dataid=1232319). However, we only used the top 30 metroplitan areas' data.
+
+## Plot - The 30 Most populated metropolitan in US
+```{r, echo = FALSE,message=FALSE, warning=FALSE}
+setwd("~/Documents/Coursera/09 Develop Data Product")
+geodata <- read.csv(file = "MetroData.csv",
+                         header = TRUE, 
+                         sep = ",")
+
+MSA <- subset(geodata, select = c("MSA", "Pop2013","Latitude", "Longitute"))
+colnames(MSA) <- c("name", "population", "latitude", "longitude")
+MSA$popsep <- format(MSA$population, big.mark=",",scientific=FALSE)
+MSA$metropop <- do.call(paste, c(MSA[c("name", "popsep")], sep = "    population:"))
+
+library(plotly)
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showland = TRUE,
+    landcolor = toRGB("gray95"),
+  subunitcolor = toRGB("gray85"),
+  countrycolor = toRGB("gray85"),
+  countrywidth = 0.5,
+  subunitwidth = 0.5
+)
+
+p <- plot_geo(MSA, lat = ~latitude, lon = ~longitude) %>%
+  add_markers(
+    text = ~paste(name, paste("Population:", popsep), sep = "<br />"),
+    color = ~population, symbol = I("circle"), size = I(10), hoverinfo = "text"
+  ) %>%
+  colorbar(title = "Population <br /> 2013") %>%
+  layout(
+    geo = g
+  )
+gg <- ggplotly(p)
+gg
+```
